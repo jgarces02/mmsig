@@ -36,5 +36,5 @@ Imports:
     GenomeInfoDb
 Depends: 
     R (>= 2.10),
-    BSgenome.Hsapiens.UCSC.hg19
+    BSgenome.Hsapiens.UCSC.hg19,
     BSgenome.Hsapiens.UCSC.hg38
