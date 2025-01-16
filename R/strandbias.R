@@ -20,7 +20,7 @@
 #' @import BSgenome.Hsapiens.UCSC.hg38
 #'
 
-getStrandBias <- function(data_5cols){
+getStrandBias <- function(data_5cols, genome.version = "hg38"){
 
   if(genome.version == "hg38"){
       genome.version2 <- BSgenome.Hsapiens.UCSC.hg38
