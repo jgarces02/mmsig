@@ -1,7 +1,7 @@
 #' Plotting function for mmsig package
 #'
 #' @param sig Object generated through \code{mm_fit_signatures}
-#' @param plot.type Type of barplot. Options are 'stacked' (default) or '96'.
+#' @param plot.type Type of barplot. Options are 'stacked' (default) or '96', or 'boot' for plotting boostrapped results.
 #' @param sig_order Order of signatures in \code{stacked} barplot, from top to bottom.
 #' @param plot.names boolean whether or not to plot sample names on the x axis. Default = \code{FALSE}
 #' @param col.width Widht for col bars. Default = 0.9
@@ -55,7 +55,8 @@ plot_signatures = function(sig, plot.type = "stacked",
           theme(axis.text.x = element_blank(),
                 axis.ticks.x = element_blank())
       }
-    }else if(plot.type == "96"){
+    
+  }else if(plot.type == "96"){
       sig$mutmatrix %>% 
       mutate(mut = rownames(.), mutgroup = gsub(".*.\\[|\\].*.", "", rownames(.))) %>% 
       reshape2::melt() %>% 
@@ -63,7 +64,20 @@ plot_signatures = function(sig, plot.type = "stacked",
         facet_grid(variable ~ mutgroup, scales = "free_x") + theme_bw() + 
         scale_fill_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2")) +
         theme(axis.text.x = element_text(angle = 90, hjust = 1), panel.grid = element_blank(), legend.position = "none")
+  
+  }else if(plot.type == "boot"){
+      ggplot(sig$bootstrap, aes(signature, estimate, fill = signature))+
+        geom_bar(position="dodge", stat="identity")+
+        geom_errorbar(data = sig$bootstrap, mapping = aes(x = signature, ymin = CI025, ymax = CI975))+
+        facet_grid(~sample)+
+        theme_bw() + theme(text = element_text(size = 12),
+              axis.text.x = rotatedAxisElementText(90, 'top'),
+              axis.title.x = element_blank(),
+              strip.background = element_blank(),
+              legend.position = 'none')+
+        scale_fill_sigs()+ labs(y = 'Relative contribution') +
+        coord_cartesian(ylim = c(0,1), expand = F)
     }else{
-      stop("ERROR: Please, indicate a correct plot type (ie, 'stacked' or '96' (as character, no number))")
+      stop("ERROR: Please, indicate a correct plot type (ie, 'stacked', '96' (as character, no number), or 'boot')")
     }
 }
