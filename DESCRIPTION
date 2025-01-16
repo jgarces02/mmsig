@@ -1,6 +1,6 @@
 Package: mmsig
 Title: A Mutational Signature Fitting Tool for Hematological Cancers
-Version: 0.0.1.
+Version: 0.0.1
 Authors@R: c(
     person(given = "Even", family = "Rustad", role = c("aut", "cre"), 
            email = "ehrustad@gmail.com",comment = c(ORCID = "https://orcid.org/0000-0002-9320-4963")),
