@@ -4,16 +4,17 @@
 #' @param sig.input mutational signature reference with mutational classes as rows and signature exposures as columns: Substitution.Type, Trinucleotide, signature.1, ... signature.n
 #' @param input.format vcf: five column vcf-like data frame with the following columns: sample, chr (e.g. chr1), pos, ref, alt. classes: samples as columns and the 96 mutational classes as rows
 #' @param sample.sigt.profs NULL = use all signatures provided in the reference. Optionally provide list with signatures to consider for each sample
+#' @param genome.version Genome version used for mutation calling in \code{muts.input}. Values, 'hg19' or 'hg38' (default). 
 #' @param bootstrap TRUE/FALSE for whether bootstrapping is to be performed
 #' @param iterations number of bootstrapping iterations to perform (only if bootstrap == TRUE)
 #' @param strandbias TRUE/FALSE for whether transcriptional strand bias should be tested for (only for vcf-like input format)
-#' @param refcheck check that input mutational catalog (if vcf-format) is aligned to hg19
 #' @param cos_sim_threshold cosine similarity threshold below which signatures are removed from the final profile
 #' @param force_include vector with the names of signatures to always keep in the final profile of every sample
 #' @param dbg FALSE = silent; TRUE = verbose
 #' @importFrom dplyr left_join
 #' @importFrom deconstructSigs mut.to.sigs.input
 #' @import BSgenome.Hsapiens.UCSC.hg19
+#' @import BSgenome.Hsapiens.UCSC.hg38
 #'
 #' @return mutational signature fitting results for all samples
 #' @export
@@ -22,10 +23,10 @@ mm_fit_signatures = function(muts.input,
                              sig.input,
                              input.format = "vcf",
                              sample.sigt.profs=NULL,
+                             genome.version = "hg38",
                              bootstrap=FALSE,
                              iterations=1000,
                              strandbias=FALSE,
-                             refcheck=TRUE,
                              cos_sim_threshold=0.01,
                              force_include=c("SBS1", "SBS5"),
                              dbg=FALSE) {
@@ -55,11 +56,17 @@ mm_fit_signatures = function(muts.input,
       stop("ERROR: Inappropriate input data format")
     }
 
-    if(refcheck){
-      if(!refCheck(muts.input, BSgenome.Hsapiens.UCSC.hg19)){
-        stop("ERROR: Wrong reference genome, please provide mutational data aligned to hg19/GRCh37")
-      }
-    }
+    if(genome.version == "hg38"){
+    	genome.version <- BSgenome.Hsapiens.UCSC.hg38
+    }else if(genome.version == "hg19"){
+    	genome.version <- BSgenome.Hsapiens.UCSC.hg19
+	}else{
+		stop("ERROR: Please, indicate a valid genome reference (ie, 'hg19' or 'hg38')")
+	}
+
+	if(!refCheck(muts.input, genome.version)){
+	    stop("ERROR: Wrong reference genome, please check that provided mutational data is aligned to the genome reference specified in genome.version")
+	}
 
     # Input sample data
     samples.muts <- mut.to.sigs.input(mut.ref = muts.input,
@@ -68,7 +75,7 @@ mm_fit_signatures = function(muts.input,
                                       pos = "pos",
                                       ref = "ref",
                                       alt = "alt",
-                                      bsg = BSgenome.Hsapiens.UCSC.hg19)
+                                      bsg = genome.version)
 
     samples.muts <- as.data.frame(t(samples.muts))
 
