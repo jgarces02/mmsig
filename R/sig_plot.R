@@ -1,8 +1,9 @@
 #' Plotting function for mmsig package
 #'
-#' @param sig data frame of mutational signature estimates in the format from mm_fit_signatures
+#' @param sig Object generated through \code{mm_fit_signatures}
 #' @param sig_order order of signatures to plot in stacked bar chart, from top to bottom
 #' @param samples boolean whether or not to plot sample names on the x axis
+#' @param col.width Widht for col bars. Default = 0.9
 #'
 #' @return relative contribution of mutational signatures in each sample
 #' @importFrom dplyr mutate
@@ -22,7 +23,7 @@
 #'
 plot_signatures = function(sig,
                            sig_order = c("SBS1", "SBS2", "SBS13", "SBS5", "SBS8", "SBS9", "SBS18", "SBS-MM1", "SBS35"),
-                           samples = FALSE){
+                           samples = FALSE, col.width = 0.9){
 
   rotatedAxisElementText = function(angle,position='x'){
     angle     = angle[1];
@@ -45,29 +46,25 @@ plot_signatures = function(sig,
                            ...)
   }
 
-  sigPlot <- sig %>%
+  sigPlot <- sig$estimate %>%
     rownames_to_column(var = "sample") %>%
     dplyr::select(-mutations) %>%
     melt(id.var = "sample", variable.name = "SBS", value.name = "prop") %>%
     mutate(SBS = factor(SBS, levels = sig_order)) %>%
     ggplot(aes(sample, prop, fill = SBS)) +
-    geom_col(width=1)+
-    scale_fill_sigs()+
-    scale_y_continuous(expand = c(0,0))+
-    theme_bw()+
-    labs(x = "Sample",
-         y = "Relative contribution",
-         fill = "Signature")+
-    theme(text = element_text(size = 10, color = "black"),
-          axis.text = element_text(color = "black"),
-          axis.text.y = element_text(size = 12),
-          axis.title = element_text(size = 14),
-          panel.grid = element_blank(),
-          panel.border = element_blank(),
-          legend.position = "right",
-          legend.text = element_text(size = 12),
-          legend.title = element_text(size = 14),
-          axis.title.x = element_blank())
+      geom_col(width = col.width)+
+      scale_fill_sigs()+ scale_y_continuous(expand = c(0,0))+
+      labs(x = "Sample", y = "Relative contribution", fill = "Signature")+
+      theme_bw()+ theme(text = element_text(size = 10, color = "black"),
+            axis.text = element_text(color = "black"),
+            axis.text.y = element_text(size = 12),
+            axis.title = element_text(size = 14),
+            panel.grid = element_blank(),
+            panel.border = element_blank(),
+            legend.position = "right",
+            legend.text = element_text(size = 12),
+            legend.title = element_text(size = 14),
+            axis.title.x = element_blank())
 
   if(samples){
     sigPlot +
