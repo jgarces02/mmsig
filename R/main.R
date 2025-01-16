@@ -57,9 +57,9 @@ mm_fit_signatures = function(muts.input,
     }
 
     if(genome.version == "hg38"){
-    	genome.version <- BSgenome.Hsapiens.UCSC.hg38
+    	genome.version <- "BSgenome.Hsapiens.UCSC.hg38"
     }else if(genome.version == "hg19"){
-    	genome.version <- BSgenome.Hsapiens.UCSC.hg19
+    	genome.version <- "BSgenome.Hsapiens.UCSC.hg19"
 	}else{
 		stop("ERROR: Please, indicate a valid genome reference (ie, 'hg19' or 'hg38')")
 	}
