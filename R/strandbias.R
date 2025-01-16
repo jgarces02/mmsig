@@ -1,6 +1,7 @@
 #' Statistical tests for transcriptional strand bias
 #'
 #' @param data_5cols input mutational catalog in 5-column format
+#' @param genome.version Genome version used for mutation calling in \code{muts.input}. Values, 'hg19' or 'hg38' (default).
 #' @return list of results from strand bias in each trinucleotide context and pooled analysis for SBS-MM1 and SBS35
 #' @importFrom dplyr %>%
 #' @importFrom tibble rownames_to_column
@@ -12,12 +13,24 @@
 #' @importFrom dplyr rowwise
 #' @importFrom stats poisson.test
 #' @importFrom TxDb.Hsapiens.UCSC.hg19.knownGene TxDb.Hsapiens.UCSC.hg19.knownGene
+#' @importFrom TxDb.Hsapiens.UCSC.hg38.knownGene TxDb.Hsapiens.UCSC.hg38.knownGene
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @import BSgenome.Hsapiens.UCSC.hg19
+#' @import BSgenome.Hsapiens.UCSC.hg38
 #'
 
 getStrandBias <- function(data_5cols){
+
+  if(genome.version == "hg38"){
+      genome.version2 <- BSgenome.Hsapiens.UCSC.hg38
+      gene.list <- suppressMessages(GenomicFeatures::genes(TxDb.Hsapiens.UCSC.hg38.knownGene))
+    }else if(genome.version == "hg19"){
+      genome.version2 <- BSgenome.Hsapiens.UCSC.hg19
+      gene.list <- suppressMessages(GenomicFeatures::genes(TxDb.Hsapiens.UCSC.hg19.knownGene))
+  }else{
+    stop("ERROR: Please, indicate a valid genome reference (ie, 'hg19' or 'hg38')")
+  }
 
   # Generate GRange list from data in vcf-like format
   sample_list <- list()
@@ -30,7 +43,7 @@ getStrandBias <- function(data_5cols){
                             IRanges(start=pos, end=pos),
                             REF= ref,
                             ALT=alt))
-    genome(temp_gr) <- "hg19"
+    genome(temp_gr) <- genome.version
 
     sample_list[[i]]<- (temp_gr)
   }
@@ -38,11 +51,9 @@ getStrandBias <- function(data_5cols){
   names(sample_list) <- samples
 
   # transcriptional strand annotation
-  genes_hg19 <- suppressMessages(GenomicFeatures::genes(TxDb.Hsapiens.UCSC.hg19.knownGene))
-
   mut_mat_stranded <- MutationalPatterns::mut_matrix_stranded(vcf_list = sample_list,
-                                                              ref_genome = "BSgenome.Hsapiens.UCSC.hg19",
-                                                              ranges = genes_hg19,
+                                                              ref_genome = genome.version2,
+                                                              ranges = gene.list,
                                                               mode = "transcription")
 
   mut_df_stranded <- as.data.frame(mut_mat_stranded) %>%
@@ -118,4 +129,3 @@ getStrandBias <- function(data_5cols){
 
   return(output)
 }
-
