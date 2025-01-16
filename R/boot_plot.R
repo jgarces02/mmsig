@@ -1,6 +1,6 @@
 #' Plot signature contributions with 95 % CI
 #'
-#' @param mutSigsSummary data frame of bootstrapping output in the format from mm_fit_signatures
+#' @param mutSigsSummary Object generated through \code{mm_fit_signatures}
 #'
 #' @return plots showing mutational signature estimates with 95 % CI by sample
 #' @export
@@ -28,15 +28,15 @@ bootSigsPlot <- function(mutSigsSummary){
                            ...)
   }
 
-  ggplot(mutSigsSummary, aes(signature, estimate, fill = signature))+
+  ggplot(mutSigsSummary$, aes(signature, estimate, fill = signature))+
     geom_bar(position="dodge", stat="identity")+
-    geom_errorbar(data = mutSigsSummary, mapping = aes(x = signature, ymin = CI025, ymax = CI975))+
+    geom_errorbar(data = mutSigsSummary$bootstrap, mapping = aes(x = signature, ymin = CI025, ymax = CI975))+
     facet_grid(~sample)+
-    theme(text = element_text(size = 12),
+    theme_bw() + theme(text = element_text(size = 12),
           axis.text.x = rotatedAxisElementText(90, 'top'),
           axis.title.x = element_blank(),
           strip.background = element_blank(),
           legend.position = 'none')+
-    scale_fill_sigs()+
-    labs(y = 'Relative contribution')
+    scale_fill_sigs()+ labs(y = 'Relative contribution') +
+    coord_cartesian(ylim = c(0,1), expand = F)
 }
